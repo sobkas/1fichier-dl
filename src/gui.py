@@ -12,20 +12,27 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QAbstractScrollArea, QLabel, QLineEdit,
                              QFileDialog, QProgressBar)
 
-# Absolute path
 def abs(f):
+    '''
+    Get absolute path.
+    '''
     return os.path.abspath(os.path.dirname(__file__)) + '/' + f
 
-# Alert
 def alert(text):
+    '''
+    Create and show QMessageBox Alert.
+    '''
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Warning)
     msg.setWindowTitle('Alert')
     msg.setText(text)
     msg.exec_()
 
-# Return selected rows
 def check_selection(table):
+    '''
+    Get selected rows from table.
+    Returns list: [Rows]
+    '''
     selection = []
     for index in table.selectionModel().selectedRows():
         selection.append(index.row())
@@ -33,11 +40,12 @@ def check_selection(table):
         alert('No rows were selected.')
     else:
         return selection
-'''
-Create empty file
-Used to create app/settings and app/cache.
-'''
+
 def create_file(f):
+    '''
+    Create empty file.
+    [note] Used to create app/settings and app/cache.
+    '''
     f = abs(f)
     print(f'Attempting to create file: {f}...')
     os.makedirs(os.path.dirname(f), exist_ok=True)
@@ -53,6 +61,11 @@ class GuiBehavior:
         self.handle_init()
 
     def handle_init(self):
+        '''
+        Load cached downloads and settings.
+        Create file in case they do not exist.
+        '''
+
         # Load cached downloads
         try:
             with open(abs('app/cache'), 'rb') as f:
@@ -79,6 +92,9 @@ class GuiBehavior:
             create_file('app/settings')
                 
     def resume_download(self):
+        '''
+        Resume selected downloads.
+        '''
         selected_rows = check_selection(self.gui.table)
         if selected_rows:
             for i in selected_rows:
@@ -86,6 +102,9 @@ class GuiBehavior:
                     self.download_workers[i].resume()
 
     def stop_download(self):
+        '''
+        Stop selected downloads.
+        '''
         selected_rows = check_selection(self.gui.table)
         if selected_rows:
             for i in selected_rows:
@@ -94,6 +113,9 @@ class GuiBehavior:
                     self.download_workers.remove(self.download_workers[i])
 
     def pause_download(self):
+        '''
+        Pause selected downloads.
+        '''
         selected_rows = check_selection(self.gui.table)
         if selected_rows:
             for i in selected_rows:
@@ -101,6 +123,9 @@ class GuiBehavior:
                     self.download_workers[i].pause()
 
     def add_links(self, state, cached_download = ''):
+        '''
+        Calls FilterWorker()
+        '''
         worker = FilterWorker(self, cached_download)
 
         worker.signals.download_signal.connect(self.download_receive_signal)
@@ -109,6 +134,9 @@ class GuiBehavior:
         self.filter_thread.start(worker)
     
     def download_receive_signal(self, row, link, append_row = True, dl_name = '', progress = 0):
+        '''
+        Append download to row and start download.
+        '''
         if append_row:
             self.gui.table_model.appendRow(row)
             index = self.gui.table_model.index(self.gui.table_model.rowCount()-1, 4)
@@ -125,12 +153,15 @@ class GuiBehavior:
         self.download_workers.append(worker)
 
     def update_receive_signal(self, data, items):
+        '''
+        Update download data.
+        items = [File Name, Size, Down Speed, Progress, Pass]
+        '''
         if data:
             if not PyQt5.sip.isdeleted(data[2]):
                 for i in range(len(items)):
                     if items[i] and isinstance(items[i], str): data[i].setText(items[i])
-                    if items[i] and not isinstance(items[i], str):
-                        data[i].setValue(items[i])
+                    if items[i] and not isinstance(items[i], str): data[i].setValue(items[i])
     
     def set_dl_directory(self):
         file_dialog = QFileDialog()
@@ -148,6 +179,9 @@ class GuiBehavior:
         
 
     def handle_exit(self):
+        '''
+        Save cached downloads data.
+        '''
         active_downloads = []
         for w in self.download_workers:
             download = w.return_data()
@@ -193,6 +227,7 @@ class Gui:
         self.table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table.setSortingEnabled(True)
         self.table.verticalHeader().hide()
 
         self.table_model = QStandardItemModel()

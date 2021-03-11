@@ -12,10 +12,16 @@ PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt'
 PLATFORM = os.name
 
 def get_proxy():
+    '''
+    Get proxy (str) from API.
+    '''
     proxy = requests.get(PROXY_TXT_API).text
     return proxy.rstrip()
 
 def convert_size(size_bytes):
+    '''
+    Convert from bytes to human readable sizes (str).
+    '''
     # https://stackoverflow.com/a/14822210
     if size_bytes == 0:
         return '0 B'
@@ -26,6 +32,9 @@ def convert_size(size_bytes):
     return '%s %s' % (s, size_name[i])
 
 def download_speed(bytes_read, start_time):
+    '''
+    Convert speed to human readable speed (str).
+    '''
     if bytes_read == 0:
         return '0 B/s'
     elif time.time()-start_time == 0:
@@ -38,6 +47,10 @@ def download_speed(bytes_read, start_time):
     return '%s %s' % (s, size_name[i])
 
 def get_link_info(url):
+    '''
+    Get file name and size.
+    Returns list: [File Name, Downloaded Size]
+    '''
     try:
         r = requests.get(url)
         html = lxml.html.fromstring(r.content)
@@ -50,6 +63,11 @@ def get_link_info(url):
         return None
 
 def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_size = 0):
+    '''
+    Name is self-explanatory.
+    1 - Get direct 1Fichier link using proxies.
+    2 - Attempt to download the file.
+    '''
     if worker.dl_name:
         try:
             downloaded_size = os.path.getsize(worker.dl_directory + '/' + worker.dl_name)
@@ -86,11 +104,11 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             # Proxy failed.
             i += 1
         else:
+            # Proxy worked.
             if worker.stopped or worker.paused:
                 return None if not worker.dl_name else worker.dl_name
 
             worker.signals.update_signal.emit(worker.data, [None, None, 'Bypassed'])
-            # Proxy worked.
             break
 
     if not html.xpath('/html/body/div[4]/div[2]/a'):
@@ -116,7 +134,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             'Range': f'bytes={downloaded_size}-' 
         }
 
-        r = requests.get(url, stream=True, headers=headers)
+        r = requests.get(url, stream=True, headers=headers, cookies=r.cookies)
 
         if 'Content-Disposition' in r.headers:
             name = r.headers['Content-Disposition'].split('"')[1]
@@ -138,12 +156,10 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
 
             with open(worker.dl_directory + '/' + name, 'ab') as f:
                 worker.signals.update_signal.emit(worker.data, [None, None, 'Downloading'])
-                itrcount=1
-                chunk_size = 1024
+                chunk_size = 8192
                 bytes_read = 0
                 start = time.time()
                 for chunk in r.iter_content(chunk_size):
-                    itrcount=itrcount+1
                     f.write(chunk)
                     bytes_read += len(chunk)
                     total_per = 100 * (float(bytes_read) + downloaded_size)

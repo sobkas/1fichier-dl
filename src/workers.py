@@ -34,8 +34,8 @@ class FilterWorker(QRunnable):
                 if '1fichier.com/' in link:
                     if not 'https://' in link[0:8] and not 'http://' in link[0:7]:
                         link = f'https://{link}'
-                    if '&af=' in link:
-                        link = link.split('&af=')[0]
+                    if '&' in link:
+                        link = link.split('&')[0]
                     self.valid_links.append(link)
 
             if not self.valid_links:
