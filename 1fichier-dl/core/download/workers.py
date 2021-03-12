@@ -1,5 +1,5 @@
 import os
-from download import *
+from .download import *
 from PyQt5.QtCore import Qt, QObject, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QStandardItem
 

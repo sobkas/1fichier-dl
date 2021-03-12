@@ -1,23 +1,26 @@
 import sys
 import pickle
 import os
+import webbrowser
 import PyQt5.sip
-from workers import FilterWorker, DownloadWorker
+from ..download.workers import FilterWorker, DownloadWorker
+from .themes import dark_theme
 from PyQt5.QtCore import Qt, QThreadPool
-from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem, QPixmap
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QPushButton, QWidget, QMessageBox,
                              QTableView, QHeaderView, QHBoxLayout,
                              QPlainTextEdit, QVBoxLayout, QAbstractItemView,
                              QAbstractScrollArea, QLabel, QLineEdit,
                              QFileDialog, QProgressBar, QStackedWidget,
-                             QFormLayout)
+                             QFormLayout, QListWidget, QComboBox)
 
-def abs(f):
+def absp(f):
     '''
     Get absolute path.
     '''
-    return os.path.abspath(os.path.dirname(__file__)) + '/' + f
+    path = os.path.join(os.path.dirname(__file__), '../..')
+    return os.path.abspath(path + '/' + f)
 
 def alert(text):
     '''
@@ -47,7 +50,7 @@ def create_file(f):
     Create empty file.
     [note] Used to create app/settings and app/cache.
     '''
-    f = abs(f)
+    f = absp(f)
     print(f'Attempting to create file: {f}...')
     os.makedirs(os.path.dirname(f), exist_ok=True)
     f = open(f, 'x')
@@ -63,11 +66,11 @@ class GuiBehavior:
 
     def handle_init(self):
         '''
-        Load cached downloads and settings.
-        Create file in case they do not exist.
+        Load cached downloads.
+        Create file in case it does not exist.
         '''
         try:
-            with open(abs('app/cache'), 'rb') as f:
+            with open(absp('app/cache'), 'rb') as f:
                 self.cached_downloads = pickle.load(f)
                 for download in self.cached_downloads:
                     self.gui.links = download[0]
@@ -79,8 +82,12 @@ class GuiBehavior:
             self.cached_downloads = []
             create_file('app/cache')
         
+        '''
+        Load settings.
+        Create file in case it doesn't exist.
+        '''
         try:
-            with open(abs('app/settings'), 'rb') as f:
+            with open(absp('app/settings'), 'rb') as f:
                 self.settings = pickle.load(f)
         except EOFError:
             self.settings = None
@@ -166,15 +173,41 @@ class GuiBehavior:
         file_dialog.setFileMode(QFileDialog.Directory)
         file_dialog.exec_()
         self.gui.dl_directory_input.setText(file_dialog.selectedFiles()[0])
+    
+    def change_theme(self, theme = None):
+        '''
+        Change app palette (theme).
+        0 = Light
+        1 = Dark
+        '''
+        if theme:
+            self.gui.theme_select.setCurrentIndex(theme)
+
+        if self.gui.theme_select.currentIndex() == 0:
+            self.gui.app.setPalette(self.gui.main.style().standardPalette())
+        elif self.gui.theme_select.currentIndex() == 1:
+            self.gui.app.setPalette(dark_theme)
+
 
     def save_settings(self):
-        with open(abs('app/settings'), 'wb') as f:
+        with open(absp('app/settings'), 'wb') as f:
             settings = []
-            settings.append(self.gui.dl_directory_input.text())
+            settings.append(self.gui.dl_directory_input.text())   # Download Directory - 0
+            settings.append(self.gui.theme_select.currentIndex()) # Theme - 1
             pickle.dump(settings, f)
             self.settings = settings
         self.gui.settings.hide()
         
+    def select_settings(self):
+        '''
+        Select settings page.
+        '''
+        selection = self.gui.settings_list.selectedItems()[0].text()
+        if selection == 'Main':
+            self.gui.stacked_settings.setCurrentIndex(0)
+        elif selection == 'About':
+            self.gui.stacked_settings.setCurrentIndex(1)
+
 
     def handle_exit(self):
         '''
@@ -186,7 +219,7 @@ class GuiBehavior:
             if download: active_downloads.append(download)
         active_downloads.extend(self.cached_downloads)
 
-        with open(abs('app/cache'), 'wb') as f:
+        with open(absp('app/cache'), 'wb') as f:
             if active_downloads:
                 pickle.dump(active_downloads, f)
         
@@ -196,24 +229,32 @@ class Gui:
     def __init__(self):
         # Init GuiBehavior()
         self.actions = GuiBehavior(self)
+        self.app_name = '1Fichier Downloader v0.1.4'
 
         # Create App
         app = QApplication(sys.argv) 
-        app.setWindowIcon(QIcon(abs('ico.ico')))
+        app.setWindowIcon(QIcon(absp('ico.ico')))
         app.setStyle('Fusion')
         app.aboutToQuit.connect(self.actions.handle_exit)
+
+        self.app = app
 
         # Create Windows
         self.main_win()
         self.add_links_win()
         self.settings_win()
 
+        # Change App Theme to saved one (Palette)
+        if self.actions.settings:
+            if len(self.actions.settings) > 1: # conditional in case the user is using an old settings file
+                self.actions.change_theme(self.actions.settings[1])
+
         sys.exit(app.exec_())
     
     def main_win(self):
         # Define Main Window
         self.main = QMainWindow()
-        self.main.setWindowTitle('1Fichier Downloader v0.1.4')
+        self.main.setWindowTitle(self.app_name)
         widget = QWidget(self.main)
         self.main.setCentralWidget(widget)
 
@@ -221,10 +262,10 @@ class Gui:
         grid = QGridLayout()
 
         # Top Buttons
-        download_btn = QPushButton(QIcon(abs('res/download.svg')), ' Add Link(s)')
+        download_btn = QPushButton(QIcon(absp('res/download.svg')), ' Add Link(s)')
         download_btn.clicked.connect(lambda: self.add_links.show())
 
-        settings_btn = QPushButton(QIcon(abs('res/settings.svg')), ' Settings')
+        settings_btn = QPushButton(QIcon(absp('res/settings.svg')), ' Settings')
         settings_btn.clicked.connect(lambda: self.settings.show())
 
         # Table
@@ -246,13 +287,13 @@ class Gui:
         grid.addWidget(self.table, 1, 0, 1, 2)
 
         # Bottom Buttons
-        resume_btn = QPushButton(QIcon(abs('res/resume.svg')), ' Resume')
+        resume_btn = QPushButton(QIcon(absp('res/resume.svg')), ' Resume')
         resume_btn.clicked.connect(self.actions.resume_download)
 
-        pause_btn = QPushButton(QIcon(abs('res/pause.svg')), ' Pause')
+        pause_btn = QPushButton(QIcon(absp('res/pause.svg')), ' Pause')
         pause_btn.clicked.connect(self.actions.pause_download)
 
-        stop_btn = QPushButton(QIcon(abs('res/stop.svg')), ' Remove')
+        stop_btn = QPushButton(QIcon(absp('res/stop.svg')), ' Remove')
         stop_btn.clicked.connect(self.actions.stop_download)
 
         # Add buttons to Horizontal Layout
@@ -296,18 +337,37 @@ class Gui:
         self.settings = QMainWindow(self.main)
         self.settings.setWindowTitle('Settings')
 
-        # Create StackedWidget and child widgets
-        stacked_settings = QStackedWidget()
+        # Create StackedWidget and Selection List
+        self.stacked_settings = QStackedWidget()
+        self.settings_list = QListWidget()
+        self.settings_list.setFixedWidth(110)
+        self.settings_list.addItems(['Main', 'About'])
+        self.settings_list.clicked.connect(self.actions.select_settings)
+
+        # Central Widget
+        central_widget = QWidget()
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.settings_list)
+        hbox.addWidget(self.stacked_settings)
+        central_widget.setLayout(hbox)
+        self.settings.setCentralWidget(central_widget)
+
+        '''
+        Child widget
+        Behavior Settings
+        '''
+        
         behavior_settings = QWidget()
-        stacked_settings.addWidget(behavior_settings)
-        self.settings.setCentralWidget(stacked_settings)
+        self.stacked_settings.addWidget(behavior_settings)
 
-        # Vertical Layout
+        # Main Layouts
         vbox = QVBoxLayout()
-        dl_directory_label = QLabel('Change download directory:')
-
-        # Form Layout
+        vbox.setAlignment(Qt.AlignTop)
         form_layout = QFormLayout()
+
+        # Change Directory
+        dl_directory_label = QLabel('Download directory:')
+        form_layout.addRow(dl_directory_label)
 
         dl_directory_btn = QPushButton('Select..')
         dl_directory_btn.clicked.connect(self.actions.set_dl_directory)
@@ -319,12 +379,47 @@ class Gui:
 
         form_layout.addRow(dl_directory_btn, self.dl_directory_input)
 
-        save_settings = QPushButton('Save Settings')
+        # Bottom Buttons
+        save_settings = QPushButton('Save')
         save_settings.clicked.connect(self.actions.save_settings)
 
-        vbox.addWidget(dl_directory_label)
-        vbox.addLayout(form_layout)
-        vbox.addWidget(save_settings)
+        # Change theme
+        theme_label = QLabel('Theme:')
+        form_layout.addRow(theme_label)
 
+        self.theme_select = QComboBox()
+        self.theme_select.addItems(['Light', 'Dark'])
+        self.theme_select.currentIndexChanged.connect(self.actions.change_theme)
+        form_layout.addRow(self.theme_select)
+
+        vbox.addLayout(form_layout)
+        vbox.addStretch()
+        vbox.addWidget(save_settings)
         behavior_settings.setLayout(vbox)
-        self.settings.show()
+
+        '''
+        Child widget
+        About
+        '''
+
+        about_settings = QWidget()
+        self.stacked_settings.addWidget(about_settings)
+
+        about_layout = QGridLayout()
+        about_layout.setAlignment(Qt.AlignCenter)
+
+        logo = QLabel()
+        logo.setPixmap(QPixmap(absp('res/zap.svg')))
+        logo.setAlignment(Qt.AlignCenter)
+
+        text = QLabel(self.app_name)
+        text.setStyleSheet('font-weight: bold; color: #4256AD')
+
+        github_btn = QPushButton(QIcon(absp('res/github.svg')), '')
+        github_btn.setFixedWidth(32)
+        github_btn.clicked.connect(lambda: webbrowser.open('https://github.com/manuGMG/1fichier-dl'))
+
+        about_layout.addWidget(logo, 0, 0, 1, 0)
+        about_layout.addWidget(github_btn, 1, 0)
+        about_layout.addWidget(text, 1, 1)
+        about_settings.setLayout(about_layout)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from gui import Gui
+from core.gui import gui
 
 if __name__ == '__main__':
-    Gui()
+    gui.Gui()
