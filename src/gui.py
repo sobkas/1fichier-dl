@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QTableView, QHeaderView, QHBoxLayout,
                              QPlainTextEdit, QVBoxLayout, QAbstractItemView,
                              QAbstractScrollArea, QLabel, QLineEdit,
-                             QFileDialog, QProgressBar)
+                             QFileDialog, QProgressBar, QStackedWidget,
+                             QFormLayout)
 
 def abs(f):
     '''
@@ -65,8 +66,6 @@ class GuiBehavior:
         Load cached downloads and settings.
         Create file in case they do not exist.
         '''
-
-        # Load cached downloads
         try:
             with open(abs('app/cache'), 'rb') as f:
                 self.cached_downloads = pickle.load(f)
@@ -80,7 +79,6 @@ class GuiBehavior:
             self.cached_downloads = []
             create_file('app/cache')
         
-        # Load settings
         try:
             with open(abs('app/settings'), 'rb') as f:
                 self.settings = pickle.load(f)
@@ -196,28 +194,36 @@ class GuiBehavior:
 
 class Gui:
     def __init__(self):
+        # Init GuiBehavior()
         self.actions = GuiBehavior(self)
-        app = QApplication(sys.argv)
+
+        # Create App
+        app = QApplication(sys.argv) 
         app.setWindowIcon(QIcon(abs('ico.ico')))
         app.setStyle('Fusion')
         app.aboutToQuit.connect(self.actions.handle_exit)
+
+        # Create Windows
         self.main_win()
         self.add_links_win()
         self.settings_win()
+
         sys.exit(app.exec_())
     
     def main_win(self):
+        # Define Main Window
         self.main = QMainWindow()
-        self.main.setWindowTitle('1Fichier Downloader')
+        self.main.setWindowTitle('1Fichier Downloader v0.1.4')
         widget = QWidget(self.main)
         self.main.setCentralWidget(widget)
 
+        # Create Grid
         grid = QGridLayout()
-        # Download Button
+
+        # Top Buttons
         download_btn = QPushButton(QIcon(abs('res/download.svg')), ' Add Link(s)')
         download_btn.clicked.connect(lambda: self.add_links.show())
 
-        # Settings Button
         settings_btn = QPushButton(QIcon(abs('res/settings.svg')), ' Settings')
         settings_btn.clicked.connect(lambda: self.settings.show())
 
@@ -239,19 +245,17 @@ class Gui:
         grid.addWidget(settings_btn, 0, 1)
         grid.addWidget(self.table, 1, 0, 1, 2)
 
-        # HL: Resume Button
+        # Bottom Buttons
         resume_btn = QPushButton(QIcon(abs('res/resume.svg')), ' Resume')
         resume_btn.clicked.connect(self.actions.resume_download)
 
-        # HL: Pause Button
         pause_btn = QPushButton(QIcon(abs('res/pause.svg')), ' Pause')
         pause_btn.clicked.connect(self.actions.pause_download)
 
-        # HL: Stop Button
         stop_btn = QPushButton(QIcon(abs('res/stop.svg')), ' Remove')
         stop_btn.clicked.connect(self.actions.stop_download)
 
-        # Horizontal Layout
+        # Add buttons to Horizontal Layout
         hbox = QHBoxLayout()
         hbox.addWidget(resume_btn)
         hbox.addWidget(pause_btn)
@@ -266,18 +270,20 @@ class Gui:
         self.main.show()
     
     def add_links_win(self):
+        # Define Add Links Win
         self.add_links = QMainWindow(self.main)
         self.add_links.setWindowTitle('Add Link(s)')
         widget = QWidget(self.add_links)
         self.add_links.setCentralWidget(widget)
 
+        # Create Vertical Layout
         layout = QVBoxLayout()
 
         # Text Edit
         self.links = QPlainTextEdit()
         layout.addWidget(self.links)
 
-        # Add Button
+        # Button
         add_btn = QPushButton('Add Link(s)')
         add_btn.clicked.connect(self.actions.add_links)
         layout.addWidget(add_btn)
@@ -286,16 +292,22 @@ class Gui:
         widget.setLayout(layout)
 
     def settings_win(self):
+        # Define Settings Win
         self.settings = QMainWindow(self.main)
         self.settings.setWindowTitle('Settings')
-        widget = QWidget(self.settings)
-        self.settings.setCentralWidget(widget)
+
+        # Create StackedWidget and child widgets
+        stacked_settings = QStackedWidget()
+        behavior_settings = QWidget()
+        stacked_settings.addWidget(behavior_settings)
+        self.settings.setCentralWidget(stacked_settings)
 
         # Vertical Layout
         vbox = QVBoxLayout()
         dl_directory_label = QLabel('Change download directory:')
 
-        hbox = QHBoxLayout()
+        # Form Layout
+        form_layout = QFormLayout()
 
         dl_directory_btn = QPushButton('Select..')
         dl_directory_btn.clicked.connect(self.actions.set_dl_directory)
@@ -305,16 +317,14 @@ class Gui:
             self.dl_directory_input.setText(self.actions.settings[0])
         self.dl_directory_input.setDisabled(True)
 
-        hbox.addWidget(dl_directory_btn)
-        hbox.addWidget(self.dl_directory_input)
+        form_layout.addRow(dl_directory_btn, self.dl_directory_input)
 
         save_settings = QPushButton('Save Settings')
         save_settings.clicked.connect(self.actions.save_settings)
 
         vbox.addWidget(dl_directory_label)
-        vbox.addLayout(hbox)
+        vbox.addLayout(form_layout)
         vbox.addWidget(save_settings)
 
-        self.add_links.setMinimumSize(300, 200)
-        widget.setLayout(vbox)
-        self.settings.setFixedSize(340, 85)
+        behavior_settings.setLayout(vbox)
+        self.settings.show()
