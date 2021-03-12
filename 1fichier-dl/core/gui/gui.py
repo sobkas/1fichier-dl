@@ -89,6 +89,7 @@ class GuiBehavior:
         try:
             with open(absp('app/settings'), 'rb') as f:
                 self.settings = pickle.load(f)
+                print(self.settings)
         except EOFError:
             self.settings = None
             print('No settings found.')
