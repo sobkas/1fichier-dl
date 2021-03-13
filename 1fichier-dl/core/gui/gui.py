@@ -89,7 +89,6 @@ class GuiBehavior:
         try:
             with open(absp('app/settings'), 'rb') as f:
                 self.settings = pickle.load(f)
-                print(self.settings)
         except EOFError:
             self.settings = None
             print('No settings found.')
@@ -170,7 +169,7 @@ class GuiBehavior:
                     if items[i] and not isinstance(items[i], str): data[i].setValue(items[i])
     
     def set_dl_directory(self):
-        file_dialog = QFileDialog()
+        file_dialog = QFileDialog(self.gui.settings)
         file_dialog.setFileMode(QFileDialog.Directory)
         file_dialog.exec_()
         self.gui.dl_directory_input.setText(file_dialog.selectedFiles()[0])

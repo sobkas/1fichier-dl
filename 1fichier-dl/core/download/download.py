@@ -134,7 +134,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             'Range': f'bytes={downloaded_size}-' 
         }
 
-        r = requests.get(url, stream=True, headers=headers, cookies=r.cookies)
+        r = requests.get(url, stream=True, headers=headers)
 
         if 'Content-Disposition' in r.headers:
             name = r.headers['Content-Disposition'].split('"')[1]
