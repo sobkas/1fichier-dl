@@ -263,10 +263,10 @@ class Gui:
 
         # Top Buttons
         download_btn = QPushButton(QIcon(absp('res/download.svg')), ' Add Link(s)')
-        download_btn.clicked.connect(lambda: self.add_links.show())
+        download_btn.clicked.connect(lambda: self.add_links.show() if not self.add_links.isVisible() else self.add_links.raise_())
 
         settings_btn = QPushButton(QIcon(absp('res/settings.svg')), ' Settings')
-        settings_btn.clicked.connect(lambda: self.settings.show())
+        settings_btn.clicked.connect(lambda: self.settings.show() if not self.settings.isVisible() else self.settings.raise_())
 
         # Table
         self.table = QTableView()
