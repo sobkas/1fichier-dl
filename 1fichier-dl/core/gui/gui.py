@@ -1,4 +1,5 @@
 import sys
+import logging
 import pickle
 import os
 import webbrowser
@@ -51,7 +52,7 @@ def create_file(f):
     [note] Used to create app/settings and app/cache.
     '''
     f = absp(f)
-    print(f'Attempting to create file: {f}...')
+    logging.debug(f'Attempting to create file: {f}...')
     os.makedirs(os.path.dirname(f), exist_ok=True)
     f = open(f, 'x')
     f.close()
@@ -77,7 +78,7 @@ class GuiBehavior:
                     self.add_links(True, download)
         except EOFError:
             self.cached_downloads = []
-            print('No cached downloads.')
+            logging.debug('No cached downloads.')
         except FileNotFoundError:
             self.cached_downloads = []
             create_file('app/cache')
@@ -91,7 +92,7 @@ class GuiBehavior:
                 self.settings = pickle.load(f)
         except EOFError:
             self.settings = None
-            print('No settings found.')
+            logging.debug('No settings found.')
         except FileNotFoundError:
             self.settings = None
             create_file('app/settings')
@@ -202,11 +203,8 @@ class GuiBehavior:
         '''
         Select settings page.
         '''
-        selection = self.gui.settings_list.selectedItems()[0].text()
-        if selection == 'Main':
-            self.gui.stacked_settings.setCurrentIndex(0)
-        elif selection == 'About':
-            self.gui.stacked_settings.setCurrentIndex(1)
+        selection = self.gui.settings_list.selectedIndexes()[0].row()
+        self.gui.stacked_settings.setCurrentIndex(selection)
 
 
     def handle_exit(self):
@@ -341,7 +339,7 @@ class Gui:
         self.stacked_settings = QStackedWidget()
         self.settings_list = QListWidget()
         self.settings_list.setFixedWidth(110)
-        self.settings_list.addItems(['Main', 'About'])
+        self.settings_list.addItems(['Behavior', 'About'])
         self.settings_list.clicked.connect(self.actions.select_settings)
 
         # Central Widget
