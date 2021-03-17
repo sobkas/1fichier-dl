@@ -4,7 +4,6 @@ import os
 import time
 import lxml.html
 import PyQt5.sip
-from random import choice
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QProgressBar
 
