@@ -2,6 +2,9 @@ import sys
 import os
 from core.download import cli_download
 
+# Pyinstaller
+excludedhooks=['PyQt5']
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f'''

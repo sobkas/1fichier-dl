@@ -3,7 +3,7 @@ import json
 import requests
 import lxml
 import time
-from .download import (get_proxy, convert_size, download_speed,
+from .helpers import (get_proxy, convert_size, download_speed,
                        PLATFORM)
 
 def download(url, password = None, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}):
