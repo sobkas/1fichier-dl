@@ -70,7 +70,7 @@ def download(url, password = None, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}
 
                 name = f'{name}.unfinished' if name[-11:] != '.unfinished' else name
 
-                print(f'Downloading: {name}')
+                print(f'Downloading: {name[:-11]}')
 
                 with open(name, 'ab') as f:
                     chunk_size = 8192
