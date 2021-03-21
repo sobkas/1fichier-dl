@@ -21,6 +21,7 @@ def download(url, password = None, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}
                     download(f['link'], password)
         else:
             print(f'{url} is not a valid 1Fichier link.')
+            return
 
         print(f'Starting download: {url}..')
 
