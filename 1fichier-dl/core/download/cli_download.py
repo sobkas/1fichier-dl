@@ -31,17 +31,18 @@ def download(url, password = None, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}
             proxies = {'https': proxy} if PLATFORM == 'nt' else {'https': f'https://{proxy}'}
             try:
                 r = requests.post(url, payload, proxies=proxies)
+                print(r.text)
                 html = lxml.html.fromstring(r.content)
                 if html.xpath('//*[@id="pass"]'):
                     password = input(f'Password needed for {url}: ')
                     payload['pass'] = password
             except:
                 # Proxy failed.
-                print(f'Bypassing..', end='\r')
+                print(f'\rBypassing..\n', end='', flush=True)
                 pass
             else:
                 # Proxy worked.
-                print('Bypassed.. ', end='\r')
+                print('\rBypassed.. \n', end='', flush=True)
                 break
 
         if not html.xpath('/html/body/div[4]/div[2]/a'):
@@ -82,7 +83,7 @@ def download(url, password = None, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}
                         total_per = 100 * (float(bytes_read))
                         total_per /= float(r.headers['Content-Length'])
                         dl_speed = download_speed(bytes_read, start)
-                        print(f'| {round(total_per, 1)}% | {dl_speed}'.ljust(21), end='\r')
+                        print(f'\r| {round(total_per, 1)}% | {dl_speed} '.ljust(21), end='', flush=True)
                 print(f'| {round(total_per, 1)}% | Finished.'.ljust(21))
                 os.rename(name, name[:-11])
                 return

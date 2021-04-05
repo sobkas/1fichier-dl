@@ -4,7 +4,7 @@ import os
 import time
 import lxml.html
 
-PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt'
+PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt&uptime=100'
 PLATFORM = os.name
 
 def get_proxy():
