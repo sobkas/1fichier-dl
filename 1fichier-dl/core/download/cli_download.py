@@ -4,11 +4,10 @@ import requests
 import lxml
 import time
 from .helpers import (get_proxy, convert_size, download_speed,
-                       PLATFORM)
+                       PLATFORM, is_valid_link)
 
 def download(url, password = None, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}):
-
-        if '1fichier.com/' in url:
+        if is_valid_link(url):
             if not 'https://' in url[0:8] and not 'http://' in url[0:7]:
                 url = f'https://{url}'
             if '&' in url:

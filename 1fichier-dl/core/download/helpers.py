@@ -57,3 +57,10 @@ def get_link_info(url):
         return [name, size]
     except:
         return None
+
+def is_valid_link(url: str) -> bool:
+    """
+    Returns if `url` is a valid 1fichier domain
+    """
+    return any([x in url.lower() for x in [ '1fichier.com/', 'afterupload.com/', 'cjoint.net/', 'desfichiers.com/', 'megadl.fr/', 'mesfichiers.org/', 'piecejointe.net/', 'pjointe.com/', 'tenvoi.com/', 'dl4free.com/' ]])
+
