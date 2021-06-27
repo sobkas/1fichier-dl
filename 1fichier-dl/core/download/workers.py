@@ -2,6 +2,7 @@ import os
 from .download import *
 from PyQt5.QtCore import Qt, QObject, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QStandardItem
+from .helpers import is_valid_link
 
 class WorkerSignals(QObject):
     download_signal = pyqtSignal(list, str, bool, str, int)
@@ -31,7 +32,7 @@ class FilterWorker(QRunnable):
 
             for link in links:
                 link = link.strip()
-                if '1fichier.com/' in link:
+                if is_valid_link(link):
                     if not 'https://' in link[0:8] and not 'http://' in link[0:7]:
                         link = f'https://{link}'
                     if '&' in link:
