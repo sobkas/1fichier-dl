@@ -7,7 +7,6 @@ from .helpers import (get_proxy, convert_size, download_speed,
                        PLATFORM, is_valid_link)
 
 def download(url, password = None, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}):
-        print(f'url: {url}', is_valid_link(url))
         if is_valid_link(url):
             if not 'https://' in url[0:8] and not 'http://' in url[0:7]:
                 url = f'https://{url}'
