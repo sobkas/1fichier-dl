@@ -7,14 +7,14 @@ import lxml.html
 PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt&uptime=100'
 PLATFORM = os.name
 
-def get_proxy():
+def get_proxy() -> str:
     '''
     Get proxy (str) from API.
     '''
     proxy = requests.get(PROXY_TXT_API).text
     return proxy.rstrip()
 
-def convert_size(size_bytes):
+def convert_size(size_bytes: int) -> str:
     '''
     Convert from bytes to human readable sizes (str).
     '''
@@ -27,7 +27,7 @@ def convert_size(size_bytes):
     s = round(size_bytes / p, 2)
     return '%s %s' % (s, size_name[i])
 
-def download_speed(bytes_read, start_time):
+def download_speed(bytes_read: int, start_time: float) -> str:
     '''
     Convert speed to human readable speed (str).
     '''
@@ -42,10 +42,9 @@ def download_speed(bytes_read, start_time):
     s = round(bps / p, 2)
     return '%s %s' % (s, size_name[i])
 
-def get_link_info(url):
+def get_link_info(url: str) -> list:
     '''
-    Get file name and size.
-    Returns list: [File Name, Downloaded Size]
+    Get file name and size. 
     '''
     try:
         r = requests.get(url)
@@ -62,5 +61,17 @@ def is_valid_link(url: str) -> bool:
     """
     Returns if `url` is a valid 1fichier domain
     """
-    return any([x in url.lower() for x in [ '1fichier.com/', 'afterupload.com/', 'cjoint.net/', 'desfichiers.com/', 'megadl.fr/', 'mesfichiers.org/', 'piecejointe.net/', 'pjointe.com/', 'tenvoi.com/', 'dl4free.com/' ]])
+    domains = [
+        '1fichier.com/',
+        'afterupload.com/',
+        'cjoint.net/',
+        'desfichiers.com/',
+        'megadl.fr/',
+        'mesfichiers.org/',
+        'piecejointe.net/',
+        'pjointe.com/',
+        'tenvoi.com/',
+        'dl4free.com/'
+    ]
 
+    return any([x in url.lower() for x in domains]) 
