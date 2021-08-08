@@ -4,7 +4,7 @@ import os
 import time
 import lxml.html
 
-PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt&uptime=100'
+PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt'
 PLATFORM = os.name
 
 def get_proxy() -> str:
@@ -12,7 +12,8 @@ def get_proxy() -> str:
     Get proxy (str) from API.
     '''
     proxy = requests.get(PROXY_TXT_API).text
-    return proxy.rstrip()
+    proxy = {'https': proxy.rstrip()} if PLATFORM == 'nt' else {'https': f'https://{proxy}'}
+    return proxy
 
 def convert_size(size_bytes: int) -> str:
     '''
@@ -58,9 +59,9 @@ def get_link_info(url: str) -> list:
         return None
 
 def is_valid_link(url: str) -> bool:
-    """
-    Returns if `url` is a valid 1fichier domain
-    """
+    '''
+    Returns whether `url` is a valid 1fichier domain.
+    '''
     domains = [
         '1fichier.com/',
         'afterupload.com/',

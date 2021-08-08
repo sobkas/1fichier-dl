@@ -36,8 +36,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
 
         worker.signals.update_signal.emit(worker.data, [None, None, f'Bypassing ({i})'])
 
-        proxy = get_proxy()
-        proxies = {'https': proxy} if PLATFORM == 'nt' else {'https': f'https://{proxy}'}
+        proxies = get_proxy()
 
         try:
             r = requests.post(url, payload, proxies=proxies)
@@ -47,6 +46,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                 r = requests.post(url, payload, proxies=proxies)
         except:
             # Proxy failed.
+            proxies = get_proxy()
             i += 1
         else:
             # Proxy worked.
@@ -79,7 +79,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             'Range': f'bytes={downloaded_size}-' 
         }
 
-        r = requests.get(url, stream=True, headers=headers)
+        r = requests.get(url, stream=True, headers=headers, proxies=proxies)
 
         if 'Content-Disposition' in r.headers:
             name = r.headers['Content-Disposition'].split('"')[1]
