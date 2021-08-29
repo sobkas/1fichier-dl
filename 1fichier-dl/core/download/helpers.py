@@ -18,7 +18,7 @@ def get_proxies(settings: str) -> list:
         FIRST_RUN = False
         return [None]
 
-    r_proxies = requests.get(f'{PROXY_TXT_API}&{settings if settings else ""}').text.split('\n')[:-1]
+    r_proxies = requests.get(f'{PROXY_TXT_API}&{settings if settings else ""}').text.splitlines()
     proxies = []
     for p in r_proxies:
         proxies.append({'https': p} if PLATFORM == 'nt' else {'https': f'https://{p}'})
