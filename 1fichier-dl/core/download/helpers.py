@@ -4,6 +4,7 @@ import os
 import time
 import lxml.html
 
+FIRST_RUN = True
 PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt&limit=20'
 PLATFORM = os.name
 
@@ -11,6 +12,12 @@ def get_proxies(settings: str) -> list:
     '''
     Get proxies (str) from API.
     '''
+    global FIRST_RUN
+    
+    if FIRST_RUN:
+        FIRST_RUN = False
+        return [None]
+
     r_proxies = requests.get(f'{PROXY_TXT_API}&{settings if settings else ""}').text.split('\n')[:-1]
     proxies = []
     for p in r_proxies:

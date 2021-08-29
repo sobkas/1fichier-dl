@@ -8,7 +8,7 @@ from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QProgressBar
 from .helpers import *
 
-def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_size = 0):
+def download(worker, payload = {'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_size = 0):
     '''
     Name is self-explanatory.
     1 - Get direct 1Fichier link using proxies.
@@ -25,7 +25,6 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
 
     url = worker.link
     i = 1
-    proxies = []
     while True:
         if worker.stopped or worker.paused:
             return None if not worker.dl_name else worker.dl_name
@@ -41,15 +40,15 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                     return None if not worker.dl_name else worker.dl_name
 
         worker.signals.update_signal.emit(worker.data, [None, None, f'Bypassing ({i})'])
-        if proxies:
+        if worker.proxies:
             logging.debug('Popping proxy.')
-            p = proxies.pop()
+            p = worker.proxies.pop()
         else:
             logging.debug('Getting proxy.')
-            proxies = get_proxies(worker.proxy_settings)
+            worker.proxies = get_proxies(worker.proxy_settings)
 
         try:
-            p = proxies.pop()
+            p = worker.proxies.pop()
             r = requests.post(url, payload, proxies=p, timeout=worker.timeout)
             html = lxml.html.fromstring(r.content)
             if html.xpath('//*[@id="pass"]'):

@@ -104,6 +104,9 @@ class DownloadWorker(QRunnable):
         self.paused = self.stopped = self.complete = False
         self.dl_name = dl_name
 
+        # Proxies
+        self.proxies = []
+
         # Default settings
         self.timeout = 30
         self.dl_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
