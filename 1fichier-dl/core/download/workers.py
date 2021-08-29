@@ -96,16 +96,24 @@ class FilterWorker(QRunnable):
 class DownloadWorker(QRunnable):
     def __init__(self, link, table_model, data, settings, dl_name = ''):
         super(DownloadWorker, self).__init__()
+        # Args
         self.link = link
         self.table_model = table_model
         self.data = data
         self.signals = WorkerSignals()
         self.paused = self.stopped = self.complete = False
         self.dl_name = dl_name
+
+        # Default settings
+        self.timeout = 30
+        self.dl_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+        self.proxy_settings = None
+
+        # Override defaults
         if settings: 
-            self.dl_directory = settings[0] if settings[0] else os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-        else:
-            self.dl_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+            if settings[0]: self.dl_directory = settings[0]
+            if settings[2]: self.timeout = settings[2]
+            if settings[3]: self.proxy_settings = settings[3]
 
     @pyqtSlot()
     def run(self):

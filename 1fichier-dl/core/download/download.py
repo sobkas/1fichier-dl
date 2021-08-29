@@ -2,6 +2,7 @@ import requests
 import os
 import time
 import lxml.html
+import logging
 import PyQt5.sip
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QProgressBar
@@ -13,17 +14,22 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
     1 - Get direct 1Fichier link using proxies.
     2 - Attempt to download the file.
     '''
+
     if worker.dl_name:
         try:
             downloaded_size = os.path.getsize(worker.dl_directory + '/' + worker.dl_name)
+            logging.debug(f'Previous file found. Downloaded size: {downloaded_size}')
         except FileNotFoundError:
             downloaded_size = 0
+            logging.debug('Previous file not found.')
+
     url = worker.link
     i = 1
+    proxies = []
     while True:
         if worker.stopped or worker.paused:
             return None if not worker.dl_name else worker.dl_name
-    
+
         while True:
             if not PyQt5.sip.isdeleted(worker.data[5]):
                 if worker.data[5].text() == '':
@@ -35,21 +41,27 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                     return None if not worker.dl_name else worker.dl_name
 
         worker.signals.update_signal.emit(worker.data, [None, None, f'Bypassing ({i})'])
-
-        proxies = get_proxy()
+        if proxies:
+            logging.debug('Popping proxy.')
+            p = proxies.pop()
+        else:
+            logging.debug('Getting proxy.')
+            proxies = get_proxies(worker.proxy_settings)
 
         try:
-            r = requests.post(url, payload, proxies=proxies)
+            p = proxies.pop()
+            r = requests.post(url, payload, proxies=p, timeout=worker.timeout)
             html = lxml.html.fromstring(r.content)
             if html.xpath('//*[@id="pass"]'):
                 payload['pass'] = worker.data[5].text()
-                r = requests.post(url, payload, proxies=proxies)
+                r = requests.post(url, payload, proxies=p, timeout=worker.timeout)
         except:
             # Proxy failed.
-            proxies = get_proxy()
+            logging.debug('Proxy failed.')
             i += 1
         else:
             # Proxy worked.
+            logging.debug('Proxy worked.')
             if worker.stopped or worker.paused:
                 return None if not worker.dl_name else worker.dl_name
 
@@ -57,6 +69,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             break
 
     if not html.xpath('/html/body/div[4]/div[2]/a'):
+        logging.debug('Failed to parse direct link.')
         if 'Bad password' in r.text:
             worker.signals.update_signal.emit(worker.data, [None, None, 'Wrong password'])
             while True:
@@ -70,6 +83,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                     return None if not worker.dl_name else worker.dl_name
         download(worker)
     else:
+        logging.debug('Parsed direct link.')
         old_url = url
         url = html.xpath('/html/body/div[4]/div[2]/a')[0].get('href')
     
@@ -79,9 +93,9 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             'Range': f'bytes={downloaded_size}-' 
         }
 
-        r = requests.get(url, stream=True, headers=headers, proxies=proxies)
-
+        r = requests.get(url, stream=True, headers=headers, proxies=p)
         if 'Content-Disposition' in r.headers:
+            logging.debug('Starting download.')
             name = r.headers['Content-Disposition'].split('"')[1]
 
             if worker.dl_name:
@@ -115,5 +129,6 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             os.rename(worker.dl_directory + '/' + name, worker.dl_directory + '/' + name[:-11])
             worker.signals.update_signal.emit(worker.data, [None, None, 'Complete'])
         else:
+            logging.debug('No Content-Disposition header. Restarting download.')
             download(worker)
     return

@@ -4,16 +4,18 @@ import os
 import time
 import lxml.html
 
-PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt'
+PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt&limit=20'
 PLATFORM = os.name
 
-def get_proxy() -> str:
+def get_proxies(settings: str) -> list:
     '''
-    Get proxy (str) from API.
+    Get proxies (str) from API.
     '''
-    proxy = requests.get(PROXY_TXT_API).text
-    proxy = {'https': proxy.rstrip()} if PLATFORM == 'nt' else {'https': f'https://{proxy}'}
-    return proxy
+    r_proxies = requests.get(f'{PROXY_TXT_API}&{settings if settings else ""}').text.split('\n')[:-1]
+    proxies = []
+    for p in r_proxies:
+        proxies.append({'https': p} if PLATFORM == 'nt' else {'https': f'https://{p}'})
+    return proxies
 
 def convert_size(size_bytes: int) -> str:
     '''

@@ -9,7 +9,7 @@ from .themes import dark_theme
 from PyQt5.QtCore import Qt, QThreadPool
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem, QPixmap
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
-                             QPushButton, QWidget, QMessageBox,
+                             QPushButton, QSpinBox, QWidget, QMessageBox,
                              QTableView, QHeaderView, QHBoxLayout,
                              QPlainTextEdit, QVBoxLayout, QAbstractItemView,
                              QAbstractScrollArea, QLabel, QLineEdit,
@@ -61,6 +61,7 @@ class GuiBehavior:
     def __init__(self, gui):
         self.filter_thread = QThreadPool()
         self.download_thread = QThreadPool()
+        self.download_thread.setMaxThreadCount(1) # Limits concurrent downloads to 1.
         self.download_workers = []
         self.gui = gui
         self.handle_init()
@@ -129,6 +130,7 @@ class GuiBehavior:
         if selected_rows:
             for i in selected_rows:
                 if i < len(self.download_workers):
+                    self.download_workers[i].signals.update_signal.emit(self.download_workers[i].data, [None, None, 'Paused', '0 B/s'])
                     self.download_workers[i].pause()
 
     def add_links(self, state, cached_download = ''):
@@ -160,7 +162,6 @@ class GuiBehavior:
 
         self.download_thread.start(worker)
         self.download_workers.append(worker)
-        print(link)
 
     def update_receive_signal(self, data, items):
         '''
@@ -198,7 +199,9 @@ class GuiBehavior:
         with open(absp('app/settings'), 'wb') as f:
             settings = []
             settings.append(self.gui.dl_directory_input.text())   # Download Directory - 0
-            settings.append(self.gui.theme_select.currentIndex()) # Theme - 1
+            settings.append(self.gui.theme_select.currentIndex()) # Theme              - 1
+            settings.append(self.gui.timeout_input.value())       # Timeout            - 2
+            settings.append(self.gui.proxy_settings_input.text()) # Proxy Settings     - 3
             pickle.dump(settings, f)
             self.settings = settings
         self.gui.settings.hide()
@@ -343,7 +346,7 @@ class Gui:
         self.stacked_settings = QStackedWidget()
         self.settings_list = QListWidget()
         self.settings_list.setFixedWidth(110)
-        self.settings_list.addItems(['Behavior', 'About'])
+        self.settings_list.addItems(['Behavior', 'Connection', 'About'])
         self.settings_list.clicked.connect(self.actions.select_settings)
 
         # Central Widget
@@ -368,8 +371,7 @@ class Gui:
         form_layout = QFormLayout()
 
         # Change Directory
-        dl_directory_label = QLabel('Download directory:')
-        form_layout.addRow(dl_directory_label)
+        form_layout.addRow(QLabel('Download directory:'))
 
         dl_directory_btn = QPushButton('Select..')
         dl_directory_btn.clicked.connect(self.actions.set_dl_directory)
@@ -386,8 +388,7 @@ class Gui:
         save_settings.clicked.connect(self.actions.save_settings)
 
         # Change theme
-        theme_label = QLabel('Theme:')
-        form_layout.addRow(theme_label)
+        form_layout.addRow(QLabel('Theme:'))
 
         self.theme_select = QComboBox()
         self.theme_select.addItems(['Light', 'Dark'])
@@ -398,6 +399,46 @@ class Gui:
         vbox.addStretch()
         vbox.addWidget(save_settings)
         behavior_settings.setLayout(vbox)
+
+        '''
+        Child widget
+        Connection Settings
+        '''
+        
+        connection_settings = QWidget()
+        self.stacked_settings.addWidget(connection_settings)
+
+        # Main Layouts
+        vbox_c = QVBoxLayout()
+        vbox_c.setAlignment(Qt.AlignTop)
+        form_layout_c = QFormLayout()
+
+        # Timeout
+        form_layout_c.addRow(QLabel('Timeout:'))
+        self.timeout_input = QSpinBox()
+        if self.actions.settings is not None:
+            self.timeout_input.setValue(self.actions.settings[2])
+        else:
+            self.timeout_input.setValue(30)
+
+        form_layout_c.addRow(self.timeout_input)
+
+        # Proxy settings
+        form_layout_c.addRow(QLabel('Proxy settings:'))
+        self.proxy_settings_input = QLineEdit()
+        if self.actions.settings is not None:
+            self.proxy_settings_input.setText(self.actions.settings[3])
+
+        form_layout_c.addRow(self.proxy_settings_input)
+
+        # Bottom buttons
+        save_settings_c = QPushButton('Save')
+        save_settings_c.clicked.connect(self.actions.save_settings)
+
+        vbox_c.addLayout(form_layout_c)
+        vbox_c.addStretch()
+        vbox_c.addWidget(save_settings_c)
+        connection_settings.setLayout(vbox_c)
 
         '''
         Child widget
