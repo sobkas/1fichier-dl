@@ -102,6 +102,7 @@ class GuiBehavior:
         Resume selected downloads.
         '''
         selected_rows = check_selection(self.gui.table)
+
         if selected_rows:
             for i in selected_rows:
                 if i < len(self.download_workers):
@@ -112,8 +113,9 @@ class GuiBehavior:
         Stop selected downloads.
         '''
         selected_rows = check_selection(self.gui.table)
+
         if selected_rows:
-            for i in selected_rows:
+            for i in reversed(selected_rows):
                 if i < len(self.download_workers):
                     self.download_workers[i].stop(i)
                     self.download_workers.remove(self.download_workers[i])
@@ -123,6 +125,7 @@ class GuiBehavior:
         Pause selected downloads.
         '''
         selected_rows = check_selection(self.gui.table)
+
         if selected_rows:
             for i in selected_rows:
                 if i < len(self.download_workers):
@@ -157,6 +160,7 @@ class GuiBehavior:
 
         self.download_thread.start(worker)
         self.download_workers.append(worker)
+        print(link)
 
     def update_receive_signal(self, data, items):
         '''
