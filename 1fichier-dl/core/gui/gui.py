@@ -137,7 +137,7 @@ class GuiBehavior:
         '''
         Calls FilterWorker()
         '''
-        worker = FilterWorker(self, cached_download)
+        worker = FilterWorker(self, cached_download, (self.gui.password.text() if not cached_download else ''))
 
         worker.signals.download_signal.connect(self.download_receive_signal)
         worker.signals.alert_signal.connect(alert)
@@ -251,8 +251,7 @@ class Gui:
 
         # Change App Theme to saved one (Palette)
         if self.actions.settings:
-            if len(self.actions.settings) > 1: # conditional in case the user is using an old settings file
-                self.actions.change_theme(self.actions.settings[1])
+            self.actions.change_theme(self.actions.settings[1])
 
         sys.exit(app.exec_())
     
@@ -325,11 +324,17 @@ class Gui:
         # Create Vertical Layout
         layout = QVBoxLayout()
 
-        # Text Edit
+        # Links input
+        layout.addWidget(QLabel('Links:'))
         self.links = QPlainTextEdit()
         layout.addWidget(self.links)
 
-        # Button
+        # Password input
+        layout.addWidget(QLabel('Password:'))
+        self.password = QLineEdit()
+        layout.addWidget(self.password)
+
+        # Add links
         add_btn = QPushButton('Add Link(s)')
         add_btn.clicked.connect(self.actions.add_links)
         layout.addWidget(add_btn)

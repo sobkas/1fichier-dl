@@ -11,14 +11,14 @@ class WorkerSignals(QObject):
     unpause_signal = pyqtSignal(list, str, bool, str)
 
 class FilterWorker(QRunnable):
-    def __init__(self, actions, cached_download = ''):
+    def __init__(self, actions, cached_download = '', password = ''):
         super(FilterWorker, self).__init__()
         self.links = actions.gui.links
         self.cached_downloads = actions.cached_downloads
         self.cached_download = cached_download
         self.signals = WorkerSignals()
         self.dl_name = cached_download[1] if self.cached_download else None
-        self.password = cached_download[2] if self.cached_download else None
+        self.password = cached_download[2] if self.cached_download else (password if password else None)
         self.progress = cached_download[3] if self.cached_download else None
 
     @pyqtSlot()
@@ -58,7 +58,7 @@ class FilterWorker(QRunnable):
                         row.append(data)
 
                     if f['password'] == 1:
-                        password = QStandardItem()
+                        password = QStandardItem(self.password)
                         row.append(password)
                     else:
                         no_password = QStandardItem('No password')
