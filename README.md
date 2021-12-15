@@ -1,3 +1,5 @@
+**Note:**
+*This is no longer maintained by me. Issues won't be fixed due to lack of interest.*
 # 1fichier-dl
 <p align="center">
   <b>1Fichier Download Manager.</b>
