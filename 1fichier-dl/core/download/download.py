@@ -27,6 +27,8 @@ def download(worker, payload = {'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded
     2 - Attempt to download the file.
     '''
     downloading = True
+    url = worker.link
+    i = 1
 
     if worker.dl_name:
         try:
@@ -37,9 +39,8 @@ def download(worker, payload = {'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded
             logging.debug('Previous file not found.')
 
     while downloading:
-        url = worker.link
-        i = 1
-            
+        p = None
+
         if worker.stopped or worker.paused:
             return None if not worker.dl_name else worker.dl_name
 
@@ -54,7 +55,7 @@ def download(worker, payload = {'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded
             worker.proxies = get_proxies(worker.proxy_settings)
 
         try:
-            p = worker.proxies.pop()
+            if not p: p = worker.proxies.pop()
             r = requests.post(url, payload, proxies=p, timeout=worker.timeout)
             html = lxml.html.fromstring(r.content)
             if html.xpath('//*[@id="pass"]'):
@@ -64,6 +65,7 @@ def download(worker, payload = {'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded
             # Proxy failed.
             logging.debug('Proxy failed.')
             i += 1
+            continue
         else:
             # Proxy worked.
             logging.debug('Proxy worked.')
