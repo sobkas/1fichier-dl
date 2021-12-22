@@ -1,5 +1,14 @@
 **Note:**
-*This is no longer maintained by me. Issues won't be fixed due to lack of interest.*
+This a fork of the original project as it's no longer maintained.
+
+## To do
+- Figure out a way to build this into a executable for release, haven't been succesful at it... included a VBS script instead that launches the program if you have Python3 and the requirements installed
+Make sure Python3 is installed properly and do **pip install -r requirements.txt** and then use can use **1fichier-dl.vbs** to launch
+
+## Fork Features
+- Fix looping bug when proxy works but download fails
+- Allows to input custom proxy list via a URL in the Settings > Connection menu (example list: https://pastebin.com/raw/uVVLrxyd), should use HTTPS proxies
+
 # 1fichier-dl
 <p align="center">
   <b>1Fichier Download Manager.</b>
