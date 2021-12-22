@@ -18,10 +18,10 @@ def get_proxies(settings: str) -> list:
         FIRST_RUN = False
         return [None]
 
-    r_proxies = requests.get(f'{PROXY_TXT_API}&{settings if settings else ""}').text.splitlines()
+    r_proxies = requests.get(f'{settings if settings else PROXY_TXT_API}').text.splitlines()
     proxies = []
     for p in r_proxies:
-        proxies.append({'https': p} if PLATFORM == 'nt' else {'https': f'https://{p}'})
+        proxies.append({'https': f'{p}'} if PLATFORM == 'nt' else {'https': f'https://{p}'})
     return proxies
 
 def convert_size(size_bytes: int) -> str:
