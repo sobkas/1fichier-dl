@@ -80,7 +80,7 @@ def download(worker, payload = {'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded
         else:
             logging.debug('Parsed direct link.')
             old_url = url
-            url = html.xpath('/html/body/div[4]/div[2]/a')[0].get('href')
+            urlx = html.xpath('/html/body/div[4]/div[2]/a')[0].get('href')
         
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36',
@@ -88,10 +88,10 @@ def download(worker, payload = {'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded
                 'Range': f'bytes={downloaded_size}-' 
             }
 
-            r = requests.get(url, stream=True, headers=headers, proxies=p)
-            if 'Content-Disposition' in r.headers:
+            rx = requests.get(urlx, stream=True, headers=headers, proxies=p)
+            if 'Content-Disposition' in rx.headers:
                 logging.debug('Starting download.')
-                name = r.headers['Content-Disposition'].split('"')[1]
+                name = rx.headers['Content-Disposition'].split('"')[1]
 
                 if worker.dl_name:
                     name = worker.dl_name
@@ -106,18 +106,18 @@ def download(worker, payload = {'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded
 
                 if worker.stopped or worker.paused: return name
 
-                worker.signals.update_signal.emit(worker.data, [name[:-11], convert_size(float(r.headers['Content-Length'])+downloaded_size)])
+                worker.signals.update_signal.emit(worker.data, [name[:-11], convert_size(float(rx.headers['Content-Length'])+downloaded_size)])
 
                 with open(worker.dl_directory + '/' + name, 'ab') as f:
                     worker.signals.update_signal.emit(worker.data, [None, None, 'Downloading'])
                     chunk_size = 8192
                     bytes_read = 0
                     start = time.time()
-                    for chunk in r.iter_content(chunk_size):
+                    for chunk in rx.iter_content(chunk_size):
                         f.write(chunk)
                         bytes_read += len(chunk)
                         total_per = 100 * (float(bytes_read) + downloaded_size)
-                        total_per /= float(r.headers['Content-Length']) + downloaded_size
+                        total_per /= float(rx.headers['Content-Length']) + downloaded_size
                         dl_speed = download_speed(bytes_read, start)
                         if worker.stopped or worker.paused: return name
                         worker.signals.update_signal.emit(worker.data, [None, None, 'Downloading', dl_speed, round(total_per, 1)])
