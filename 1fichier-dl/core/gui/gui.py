@@ -465,7 +465,7 @@ class Gui:
 
         github_btn = QPushButton(QIcon(absp('res/github.svg')), '')
         github_btn.setFixedWidth(32)
-        github_btn.clicked.connect(lambda: webbrowser.open('https://github.com/manuGMG/1fichier-dl'))
+        github_btn.clicked.connect(lambda: webbrowser.open('https://github.com/paulo27ms/1fichier-dl-fork27'))
 
         about_layout.addWidget(logo, 0, 0, 1, 0)
         about_layout.addWidget(github_btn, 1, 0)
