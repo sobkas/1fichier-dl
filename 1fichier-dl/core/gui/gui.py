@@ -234,8 +234,8 @@ class Gui:
     def __init__(self):
         # Init GuiBehavior()
         self.actions = GuiBehavior(self)
-        self.app_name = '1Fichier Downloader v0.1.5'
-
+        self.app_name = '1Fichier Downloader v0.2.0-fork'
+        
         # Create App
         app = QApplication(sys.argv) 
         app.setWindowIcon(QIcon(absp('ico.ico')))
