@@ -1,9 +1,11 @@
 **Note:**
 This a fork of the original project as it's no longer maintained.
 
+## Usage
+- Make sure Python3 is installed properly, do `pip install -r requirements.txt` and then you can use `1fichier-dl.vbs` to launch the program
+
 ## To do
-- Figure out a way to build this into a executable for release, haven't been succesful at it... included a VBS script instead that launches the program if you have Python3 and the requirements installed
-- Make sure Python3 is installed properly and do **pip install -r requirements.txt** and then use can use **1fichier-dl.vbs** to launch
+- Figure out a way to build this into a executable for release, haven't been succesful at it... for now use the VBS script
 
 ## Fork Features
 - Fix looping bug when proxy works but download fails
