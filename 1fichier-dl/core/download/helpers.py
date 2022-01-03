@@ -21,7 +21,7 @@ def get_proxies(settings: str) -> list:
     r_proxies = requests.get(f'{settings if settings else PROXY_TXT_API}').text.splitlines()
     proxies = []
     for p in r_proxies:
-        proxies.append({'https': f'{p}'} if PLATFORM == 'nt' else {'https': f'https://{p}'})
+        proxies.append({'https': f'{p}'} if PLATFORM == 'nt' else {'https': f'http://{p}'})
     return proxies
 
 def convert_size(size_bytes: int) -> str:
