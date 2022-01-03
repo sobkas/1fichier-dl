@@ -21,14 +21,15 @@ Change according to your configuration
 - Add token authentication
 - Use config file instead of hardcoded values
 
+## Todo
+- Integrate gui with aria2
+
 # 1fichier-dl
 <p align="center">
   <b>1Fichier Download Manager.</b>
 </p>
 
-<p align="center">
-  <img src="https://github.com/sobkas/1fichier-dl/blob/main/preview.png?raw=true"></img>
-</p>
+
 
 ## Features
 ⭐ Manage your downloads
