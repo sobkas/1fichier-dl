@@ -20,6 +20,7 @@ Change according to your configuration
 - Add aria2 integration from oureveryday
 - Add token authentication
 - Use config file instead of hardcoded values
+- Blacklist failing proxies
 
 ## Todo
 - Integrate gui with aria2
